@@ -1,10 +1,14 @@
-name: Program Code Convention Check (ESLint)
+name: JS Program Code Convention Check (ESLint)
 
 on: [push] # Запуск при кожному push
 
 jobs:
-  lint_js_module:
-    name: Lint JavaScript Module
+  # ----------------------------------------------------------------------
+  # РОБОТА 1: Перевірка чистого коду (Expected PASS)
+  # Ця робота перевіряє ProgramCode.js
+  # ----------------------------------------------------------------------
+  lint_clean_module:
+    name: Check ProgramCode.js (Expected PASS)
     runs-on: ubuntu-latest
 
     steps:
@@ -14,28 +18,62 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Використовуємо версію, обрану в архітектурі
+          node-version: '20' 
           
       - name: Install ESLint and Dependencies
-        # Встановлюємо ESLint та базовий конфіг для Node.js
         run: |
           npm install eslint --save-dev
           npm install eslint-config-airbnb-base --save-dev
           npm install eslint-plugin-import --save-dev
-
+          
       - name: Create ESLint Configuration
-        # Створюємо мінімальний .eslintrc.json для перевірки
+        # Створюємо .eslintrc.json для перевірки JS-коду
         run: |
           echo '{' > .eslintrc.json
           echo '  "extends": "airbnb-base",' >> .eslintrc.json
-          echo '  "env": {' >> .eslintrc.json
-          echo '    "node": true,' >> .eslintrc.json
-          echo '    "es6": true' >> .eslintrc.json
-          echo '  },' >> .eslintrc.json
-          echo '  "rules": {' >> .eslintrc.json
-          echo '    "no-console": "off"' >> .eslintrc.json
-          echo '  }' >> .eslintrc.json
+          echo '  "env": {"node": true, "es2021": true},' >> .eslintrc.json
+          echo '  "rules": {"no-console": "off", "semi": ["error", "always"]}' >> .eslintrc.json
           echo '}' >> .eslintrc.json
           
-      - name: Run Code Convention Check (Expected PASS)
+      - name: Run Code Convention Check (Original File)
+        # Лінтуємо чистий файл, очікуючи успіху (PASS)
         run: ./node_modules/.bin/eslint ProgramCode.js
+
+
+  # ----------------------------------------------------------------------
+  # РОБОТА 2: Перевірка навмисно порушеного коду (Expected FAIL)
+  # Ця робота перевіряє ProgramCodeModified.js
+  # ----------------------------------------------------------------------
+  lint_modified_module:
+    name: Check ProgramCodeModified.js (Expected FAIL)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ESLint and Configuration
+        # Встановлюємо залежності для цієї роботи
+        run: |
+          npm install eslint --save-dev
+          npm install eslint-config-airbnb-base --save-dev
+          npm install eslint-plugin-import --save-dev
+          
+      - name: Create ESLint Configuration
+        # Створюємо .eslintrc.json (потрібно повторити, бо це окрема job)
+        run: |
+          echo '{' > .eslintrc.json
+          echo '  "extends": "airbnb-base",' >> .eslintrc.json
+          echo '  "env": {"node": true, "es2021": true},' >> .eslintrc.json
+          echo '  "rules": {"no-console": "off", "semi": ["error", "always"]}' >> .eslintrc.json
+          echo '}' >> .eslintrc.json
+
+      - name: Run Modified Code Check (Expected FAIL)
+        # Лінтуємо змінений файл. continue-on-error: true дозволить зафіксувати вивід помилок
+        run: ./node_modules/.bin/eslint ProgramCodeModified.js
+        continue-on-error: true
