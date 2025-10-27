@@ -5,7 +5,6 @@ on: [push] # Запуск при кожному push
 jobs:
   # ----------------------------------------------------------------------
   # РОБОТА 1: Перевірка чистого коду (Expected PASS)
-  # Ця робота перевіряє ProgramCode.js
   # ----------------------------------------------------------------------
   lint_clean_module:
     name: Check ProgramCode.js (Expected PASS)
@@ -20,27 +19,41 @@ jobs:
         with:
           node-version: '20' 
           
-      - name: Install ESLint and Dependencies 
+      - name: Install ESLint and Dependencies
+        # Встановлюємо залежності, необхідні для airbnb та конфігурації
+        # Використовуємо --legacy-peer-deps, щоб уникнути потенційних конфліктів airbnb/ESLintv9
         run: |
           npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
           
-      - name: Create ESLint Configuration
-        # Створюємо .eslintrc.json для перевірки JS-коду
+      - name: Create ESLint Configuration (eslint.config.js)
+        # Створюємо конфігураційний файл у новому форматі JS
         run: |
-          echo '{' > .eslintrc.json
-          echo '  "extends": "airbnb-base",' >> .eslintrc.json
-          echo '  "env": {"node": true, "es2021": true},' >> .eslintrc.json
-          echo '  "rules": {"no-console": "off", "semi": ["error", "always"]}' >> .eslintrc.json
-          echo '}' >> .eslintrc.json
+          echo "import airbnb from 'eslint-config-airbnb-base';" > eslint.config.js
+          echo "import globals from 'globals';" >> eslint.config.js
+          echo "" >> eslint.config.js
+          echo "export default [" >> eslint.config.js
+          echo "  airbnb," >> eslint.config.js
+          echo "  {" >> eslint.config.js
+          echo "    languageOptions: {" >> eslint.config.js
+          echo "      globals: globals.node," >> eslint.config.js
+          echo "      sourceType: 'module'," >> eslint.config.js
+          echo "      ecmaVersion: 2021," >> eslint.config.js
+          echo "    }," >> eslint.config.js
+          echo "    rules: {" >> eslint.config.js
+          echo "      'no-console': 'off'," >> eslint.config.js
+          echo "      'semi': ['error', 'always']," >> eslint.config.js
+          echo "    }," >> eslint.config.js
+          echo "  }," >> eslint.config.js
+          echo "];" >> eslint.config.js
           
       - name: Run Code Convention Check (Original File)
-        # Лінтуємо чистий файл, очікуючи успіху (PASS)
+        # Запускаємо ESLint. Тепер він автоматично знайде eslint.config.js
         run: ./node_modules/.bin/eslint ProgramCode.js
 
 
   # ----------------------------------------------------------------------
   # РОБОТА 2: Перевірка навмисно порушеного коду (Expected FAIL)
-  # Ця робота перевіряє ProgramCodeModified.js
+  # Потрібно повторити кроки встановлення та конфігурації для цієї окремої Job
   # ----------------------------------------------------------------------
   lint_modified_module:
     name: Check ProgramCodeModified.js (Expected FAIL)
@@ -56,22 +69,29 @@ jobs:
           node-version: '20'
 
       - name: Install ESLint and Configuration
-        # Встановлюємо залежності для цієї роботи
-        run: |
-          npm install eslint --save-dev
-          npm install eslint-config-airbnb-base --save-dev
-          npm install eslint-plugin-import --save-dev
+        run: npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
           
       - name: Create ESLint Configuration
-        # Створюємо .eslintrc.json (потрібно повторити, бо це окрема job)
+        # Повторюємо створення конфігураційного файлу
         run: |
-          echo '{' > .eslintrc.json
-          echo '  "extends": "airbnb-base",' >> .eslintrc.json
-          echo '  "env": {"node": true, "es2021": true},' >> .eslintrc.json
-          echo '  "rules": {"no-console": "off", "semi": ["error", "always"]}' >> .eslintrc.json
-          echo '}' >> .eslintrc.json
+          echo "import airbnb from 'eslint-config-airbnb-base';" > eslint.config.js
+          echo "import globals from 'globals';" >> eslint.config.js
+          echo "" >> eslint.config.js
+          echo "export default [" >> eslint.config.js
+          echo "  airbnb," >> eslint.config.js
+          echo "  {" >> eslint.config.js
+          echo "    languageOptions: {" >> eslint.config.js
+          echo "      globals: globals.node," >> eslint.config.js
+          echo "      sourceType: 'module'," >> eslint.config.js
+          echo "      ecmaVersion: 2021," >> eslint.config.js
+          echo "    }," >> eslint.config.js
+          echo "    rules: {" >> eslint.config.js
+          echo "      'no-console': 'off'," >> eslint.config.js
+          echo "      'semi': ['error', 'always']," >> eslint.config.js
+          echo "    }," >> eslint.config.js
+          echo "  }," >> eslint.config.js
+          echo "];" >> eslint.config.js
 
       - name: Run Modified Code Check (Expected FAIL)
-        # Лінтуємо змінений файл. continue-on-error: true дозволить зафіксувати вивід помилок
         run: ./node_modules/.bin/eslint ProgramCodeModified.js
         continue-on-error: true
