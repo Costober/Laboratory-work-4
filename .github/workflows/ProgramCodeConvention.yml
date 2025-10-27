@@ -20,20 +20,24 @@ jobs:
           node-version: '20' 
           
       - name: Install ESLint and Dependencies
-        # Встановлюємо залежності, необхідні для airbnb та конфігурації
-        # Використовуємо --legacy-peer-deps, щоб уникнути потенційних конфліктів airbnb/ESLintv9
+        # Встановлюємо залежності та створюємо package.json для обходу помилок ESLint
         run: |
+          npm init -y # Створюємо package.json
           npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
-          
+          # Додаємо "type": "module" до package.json, щоб усунути попередження
+          node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.type = 'module'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
       - name: Create ESLint Configuration (eslint.config.js)
-        # Створюємо конфігураційний файл у новому форматі JS
+        # Правильна конфігурація з розгортанням конфігурації airbnb
         run: |
-          echo "import airbnb from 'eslint-config-airbnb-base';" > eslint.config.js
+          echo "import airbnbConfig from 'eslint-config-airbnb-base';" > eslint.config.js
           echo "import globals from 'globals';" >> eslint.config.js
           echo "" >> eslint.config.js
+          echo "const airbnb = airbnbConfig;" >> eslint.config.js
           echo "export default [" >> eslint.config.js
-          echo "  airbnb," >> eslint.config.js
+          echo "  ...airbnb," >> eslint.config.js
           echo "  {" >> eslint.config.js
+          echo "    files: ['**/*.js']," >> eslint.config.js
           echo "    languageOptions: {" >> eslint.config.js
           echo "      globals: globals.node," >> eslint.config.js
           echo "      sourceType: 'module'," >> eslint.config.js
@@ -47,13 +51,11 @@ jobs:
           echo "];" >> eslint.config.js
           
       - name: Run Code Convention Check (Original File)
-        # Запускаємо ESLint. Тепер він автоматично знайде eslint.config.js
         run: ./node_modules/.bin/eslint ProgramCode.js
 
 
   # ----------------------------------------------------------------------
   # РОБОТА 2: Перевірка навмисно порушеного коду (Expected FAIL)
-  # Потрібно повторити кроки встановлення та конфігурації для цієї окремої Job
   # ----------------------------------------------------------------------
   lint_modified_module:
     name: Check ProgramCodeModified.js (Expected FAIL)
@@ -69,17 +71,22 @@ jobs:
           node-version: '20'
 
       - name: Install ESLint and Configuration
-        run: npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
+        # Повторюємо встановлення та конфігурацію для цієї окремої Job
+        run: |
+          npm init -y
+          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
+          node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.type = 'module'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
           
       - name: Create ESLint Configuration
-        # Повторюємо створення конфігураційного файлу
         run: |
-          echo "import airbnb from 'eslint-config-airbnb-base';" > eslint.config.js
+          echo "import airbnbConfig from 'eslint-config-airbnb-base';" > eslint.config.js
           echo "import globals from 'globals';" >> eslint.config.js
           echo "" >> eslint.config.js
+          echo "const airbnb = airbnbConfig;" >> eslint.config.js
           echo "export default [" >> eslint.config.js
-          echo "  airbnb," >> eslint.config.js
+          echo "  ...airbnb," >> eslint.config.js
           echo "  {" >> eslint.config.js
+          echo "    files: ['**/*.js']," >> eslint.config.js
           echo "    languageOptions: {" >> eslint.config.js
           echo "      globals: globals.node," >> eslint.config.js
           echo "      sourceType: 'module'," >> eslint.config.js
