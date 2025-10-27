@@ -20,11 +20,9 @@ jobs:
         with:
           node-version: '20' 
           
-      - name: Install ESLint and Dependencies
+      - name: Install ESLint and Dependencies 
         run: |
-          npm install eslint --save-dev
-          npm install eslint-config-airbnb-base --save-dev
-          npm install eslint-plugin-import --save-dev
+          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
           
       - name: Create ESLint Configuration
         # Створюємо .eslintrc.json для перевірки JS-коду
