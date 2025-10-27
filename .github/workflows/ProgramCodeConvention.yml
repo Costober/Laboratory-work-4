@@ -19,23 +19,23 @@ jobs:
         with:
           node-version: '20' 
           
-      - name: Install ESLint and Dependencies
-        # Встановлюємо залежності та створюємо package.json для обходу помилок ESLint
+      - name: Clean and Install ESLint Dependencies
+        # 1. Створюємо package.json та додаємо "type": "module"
+        # 2. Використовуємо --legacy-peer-deps для сумісності ESLint v9 та airbnb
         run: |
-          npm init -y # Створюємо package.json
-          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
-          # Додаємо "type": "module" до package.json, щоб усунути попередження
+          npm init -y
           node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.type = 'module'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
-
+          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
+          
       - name: Create ESLint Configuration (eslint.config.js)
-        # Правильна конфігурація з розгортанням конфігурації airbnb
+        # Правильна конфігурація з розгортанням (spread operator) airbnb
         run: |
           echo "import airbnbConfig from 'eslint-config-airbnb-base';" > eslint.config.js
           echo "import globals from 'globals';" >> eslint.config.js
           echo "" >> eslint.config.js
-          echo "const airbnb = airbnbConfig;" >> eslint.config.js
+          # Розгортаємо конфігурацію airbnb напряму: ...airbnbConfig
           echo "export default [" >> eslint.config.js
-          echo "  ...airbnb," >> eslint.config.js
+          echo "  ...airbnbConfig," >> eslint.config.js
           echo "  {" >> eslint.config.js
           echo "    files: ['**/*.js']," >> eslint.config.js
           echo "    languageOptions: {" >> eslint.config.js
@@ -46,6 +46,7 @@ jobs:
           echo "    rules: {" >> eslint.config.js
           echo "      'no-console': 'off'," >> eslint.config.js
           echo "      'semi': ['error', 'always']," >> eslint.config.js
+          echo "      'import/extensions': ['error', 'always']," >> eslint.config.js
           echo "    }," >> eslint.config.js
           echo "  }," >> eslint.config.js
           echo "];" >> eslint.config.js
@@ -59,6 +60,7 @@ jobs:
   # ----------------------------------------------------------------------
   lint_modified_module:
     name: Check ProgramCodeModified.js (Expected FAIL)
+    # Змінено: Runs-on ubuntu-latest
     runs-on: ubuntu-latest
     
     steps:
@@ -70,21 +72,20 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install ESLint and Configuration
+      - name: Clean and Install ESLint Configuration
         # Повторюємо встановлення та конфігурацію для цієї окремої Job
         run: |
           npm init -y
-          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
           node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.type = 'module'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
           
       - name: Create ESLint Configuration
         run: |
           echo "import airbnbConfig from 'eslint-config-airbnb-base';" > eslint.config.js
           echo "import globals from 'globals';" >> eslint.config.js
           echo "" >> eslint.config.js
-          echo "const airbnb = airbnbConfig;" >> eslint.config.js
           echo "export default [" >> eslint.config.js
-          echo "  ...airbnb," >> eslint.config.js
+          echo "  ...airbnbConfig," >> eslint.config.js
           echo "  {" >> eslint.config.js
           echo "    files: ['**/*.js']," >> eslint.config.js
           echo "    languageOptions: {" >> eslint.config.js
@@ -95,6 +96,7 @@ jobs:
           echo "    rules: {" >> eslint.config.js
           echo "      'no-console': 'off'," >> eslint.config.js
           echo "      'semi': ['error', 'always']," >> eslint.config.js
+          echo "      'import/extensions': ['error', 'always']," >> eslint.config.js
           echo "    }," >> eslint.config.js
           echo "  }," >> eslint.config.js
           echo "];" >> eslint.config.js
