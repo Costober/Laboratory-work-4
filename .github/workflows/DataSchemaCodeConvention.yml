@@ -1,0 +1,40 @@
+name: SQL Code Convention Check (sqlfluff)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint_schema:
+    name: Lint SQL Schema
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 1. Встановлення sqlfluff
+      - name: Install sqlfluff
+        run: pip install sqlfluff
+
+      # 2. Встановлення діалекту PostgreSQL
+      - name: Install PostgreSQL dialect
+        run: pip install sqlfluff[postgres]
+        
+      # 3. Налаштування конфігурації (для коректного лінтування)
+      - name: Create .sqlfluff config
+        run: |
+          echo "[sqlfluff]" >> .sqlfluff
+          echo "dialect = postgres" >> .sqlfluff
+          echo "max_line_length = 100" >> .sqlfluff
+          echo "indent_unit = 'spaces'" >> .sqlfluff
+          echo "output_line_length = 100" >> .sqlfluff
+          echo "" >> .sqlfluff
+
+      # 4. Лінтування ОРИГІНАЛЬНОЇ схеми (DataSchema.sql)
+      # Цей крок має видати PASS, якщо ви виправляли код раніше
+      - name: Lint DataSchema.sql (Expected PASS)
+        # Використовуємо --exclude-rules для ігнорування складних правил, якщо потрібно
+        run: sqlfluff lint DataSchema.sql
