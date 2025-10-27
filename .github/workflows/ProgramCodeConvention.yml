@@ -1,6 +1,6 @@
 name: JS Program Code Convention Check (ESLint)
 
-on: [push] # Запуск при кожному push
+on: [push]
 
 jobs:
   # ----------------------------------------------------------------------
@@ -19,40 +19,35 @@ jobs:
         with:
           node-version: '20' 
           
-      - name: Clean and Install ESLint Dependencies
-        # 1. Створюємо package.json та додаємо "type": "module"
-        # 2. Використовуємо --legacy-peer-deps для сумісності ESLint v9 та airbnb
+      - name: Install ESLint Dependencies
         run: |
           npm init -y
-          node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.type = 'module'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
-          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
+          npm install --save-dev eslint@8 eslint-config-airbnb-base eslint-plugin-import
           
-      - name: Create ESLint Configuration (eslint.config.js)
-        # Правильна конфігурація з розгортанням (spread operator) airbnb
+      - name: Create ESLint Configuration
         run: |
-          echo "import airbnbConfig from 'eslint-config-airbnb-base';" > eslint.config.js
-          echo "import globals from 'globals';" >> eslint.config.js
-          echo "" >> eslint.config.js
-          # Розгортаємо конфігурацію airbnb напряму: ...airbnbConfig
-          echo "export default [" >> eslint.config.js
-          echo "  ...airbnbConfig," >> eslint.config.js
-          echo "  {" >> eslint.config.js
-          echo "    files: ['**/*.js']," >> eslint.config.js
-          echo "    languageOptions: {" >> eslint.config.js
-          echo "      globals: globals.node," >> eslint.config.js
-          echo "      sourceType: 'module'," >> eslint.config.js
-          echo "      ecmaVersion: 2021," >> eslint.config.js
-          echo "    }," >> eslint.config.js
-          echo "    rules: {" >> eslint.config.js
-          echo "      'no-console': 'off'," >> eslint.config.js
-          echo "      'semi': ['error', 'always']," >> eslint.config.js
-          echo "      'import/extensions': ['error', 'always']," >> eslint.config.js
-          echo "    }," >> eslint.config.js
-          echo "  }," >> eslint.config.js
-          echo "];" >> eslint.config.js
+          cat > .eslintrc.json << 'EOF'
+          {
+            "extends": ["airbnb-base"],
+            "env": {
+              "node": true,
+              "es2021": true
+            },
+            "parserOptions": {
+              "ecmaVersion": 2021,
+              "sourceType": "module"
+            },
+            "rules": {
+              "no-console": "off",
+              "semi": ["error", "always"],
+              "quotes": ["error", "single"],
+              "no-var": "error"
+            }
+          }
+          EOF
           
       - name: Run Code Convention Check (Original File)
-        run: ./node_modules/.bin/eslint ProgramCode.js
+        run: npx eslint ProgramCode.js
 
 
   # ----------------------------------------------------------------------
@@ -60,7 +55,6 @@ jobs:
   # ----------------------------------------------------------------------
   lint_modified_module:
     name: Check ProgramCodeModified.js (Expected FAIL)
-    # Змінено: Runs-on ubuntu-latest
     runs-on: ubuntu-latest
     
     steps:
@@ -72,35 +66,33 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Clean and Install ESLint Configuration
-        # Повторюємо встановлення та конфігурацію для цієї окремої Job
+      - name: Install ESLint Dependencies
         run: |
           npm init -y
-          node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.type = 'module'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
-          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import --legacy-peer-deps
+          npm install --save-dev eslint@8 eslint-config-airbnb-base eslint-plugin-import
           
       - name: Create ESLint Configuration
         run: |
-          echo "import airbnbConfig from 'eslint-config-airbnb-base';" > eslint.config.js
-          echo "import globals from 'globals';" >> eslint.config.js
-          echo "" >> eslint.config.js
-          echo "export default [" >> eslint.config.js
-          echo "  ...airbnbConfig," >> eslint.config.js
-          echo "  {" >> eslint.config.js
-          echo "    files: ['**/*.js']," >> eslint.config.js
-          echo "    languageOptions: {" >> eslint.config.js
-          echo "      globals: globals.node," >> eslint.config.js
-          echo "      sourceType: 'module'," >> eslint.config.js
-          echo "      ecmaVersion: 2021," >> eslint.config.js
-          echo "    }," >> eslint.config.js
-          echo "    rules: {" >> eslint.config.js
-          echo "      'no-console': 'off'," >> eslint.config.js
-          echo "      'semi': ['error', 'always']," >> eslint.config.js
-          echo "      'import/extensions': ['error', 'always']," >> eslint.config.js
-          echo "    }," >> eslint.config.js
-          echo "  }," >> eslint.config.js
-          echo "];" >> eslint.config.js
+          cat > .eslintrc.json << 'EOF'
+          {
+            "extends": ["airbnb-base"],
+            "env": {
+              "node": true,
+              "es2021": true
+            },
+            "parserOptions": {
+              "ecmaVersion": 2021,
+              "sourceType": "module"
+            },
+            "rules": {
+              "no-console": "off",
+              "semi": ["error", "always"],
+              "quotes": ["error", "single"],
+              "no-var": "error"
+            }
+          }
+          EOF
 
       - name: Run Modified Code Check (Expected FAIL)
-        run: ./node_modules/.bin/eslint ProgramCodeModified.js
+        run: npx eslint ProgramCodeModified.js
         continue-on-error: true
