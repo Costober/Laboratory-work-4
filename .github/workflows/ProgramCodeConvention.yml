@@ -1,0 +1,41 @@
+name: Program Code Convention Check (ESLint)
+
+on: [push] # Запуск при кожному push
+
+jobs:
+  lint_js_module:
+    name: Lint JavaScript Module
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Використовуємо версію, обрану в архітектурі
+          
+      - name: Install ESLint and Dependencies
+        # Встановлюємо ESLint та базовий конфіг для Node.js
+        run: |
+          npm install eslint --save-dev
+          npm install eslint-config-airbnb-base --save-dev
+          npm install eslint-plugin-import --save-dev
+
+      - name: Create ESLint Configuration
+        # Створюємо мінімальний .eslintrc.json для перевірки
+        run: |
+          echo '{' > .eslintrc.json
+          echo '  "extends": "airbnb-base",' >> .eslintrc.json
+          echo '  "env": {' >> .eslintrc.json
+          echo '    "node": true,' >> .eslintrc.json
+          echo '    "es6": true' >> .eslintrc.json
+          echo '  },' >> .eslintrc.json
+          echo '  "rules": {' >> .eslintrc.json
+          echo '    "no-console": "off"' >> .eslintrc.json
+          echo '  }' >> .eslintrc.json
+          echo '}' >> .eslintrc.json
+          
+      - name: Run Code Convention Check (Expected PASS)
+        run: ./node_modules/.bin/eslint ProgramCode.js
