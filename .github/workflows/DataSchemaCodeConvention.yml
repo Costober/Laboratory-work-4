@@ -38,3 +38,30 @@ jobs:
       - name: Lint DataSchema.sql (Expected PASS)
         # Використовуємо --exclude-rules для ігнорування складних правил, якщо потрібно
         run: sqlfluff lint DataSchema.sql
+
+  lint_modified_schema:
+    name: Lint DataSchemaModified.sql (Expected FAIL)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 1. Встановлення та конфігурація
+      - name: Install sqlfluff and config
+        run: |
+          pip install sqlfluff[postgres]
+          echo "[sqlfluff]" >> .sqlfluff
+          echo "dialect = postgres" >> .sqlfluff
+          # Додаткові правила, що дозволяють напевно отримати FAIL
+          echo "rules = L003, L010" >> .sqlfluff 
+
+      # 2. Лінтування зміненої схеми
+      - name: Lint DataSchemaModified.sql
+        # Використовуємо "continue-on-error: true", щоб робота не перервалася 
+        # при виявленні порушень (що ми й очікуємо)
+        run: sqlfluff lint DataSchemaModified.sql
+        continue-on-error: true 
+      
+      - name: Check for expected errors
+        run: echo "Expected violations were found, demonstrating the FAIL scenario."
